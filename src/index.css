@@ -1,0 +1,266 @@
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================== 1. Global Resets & UX ===================== */
+
+/* 移除移动端点击高亮，消除 300ms 点击延迟 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 优化交互：仅在非移动设备或需要时滚动，提升触控响应 */
+html {
+  touch-action: manipulation;
+}
+
+/* 焦点管理：移除默认轮廓，为键盘导航用户保留自定义焦点环 */
+*:focus {
+  outline: none;
+}
+
+/* 仅在键盘导航时显示焦点环，鼠标点击不显示 */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 文本选择策略：仅禁用交互元素的选择，保留普通文本的复制功能 */
+button,
+a,
+[role="button"],
+[role="menuitem"],
+[role="tab"],
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 确保输入框内的文本总是可选 */
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ===================== 2. Scrollbar Styling ===================== */
+
+/* 轻量级、高颜值的滚动条 (Chrome/Safari/Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 10px; /* 圆润的滚动条 */
+  border: 2px solid transparent; /* 增加内边距效果 */
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Firefox 滚动条设置 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+/* ===================== 3. Custom Component Layer ===================== */
+
+@layer components {
+  /* 通用卡片：带轻微悬停提升效果 */
+  .app-card {
+    @apply bg-card rounded-xl border border-border transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+  .app-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px); /* 微弱位移，避免布局跳动 */
+  }
+
+  /* 页面顶部导航栏 */
+  .page-header {
+    @apply bg-card border-b border-border px-6 py-3 shrink-0;
+  }
+
+  /* 信息面板（带渐变背景的提示框） */
+  .info-panel {
+    @apply rounded-xl p-5 border border-blue-200 dark:border-blue-900;
+    background: linear-gradient(135deg, hsl(var(--info) / 0.08), hsl(var(--info) / 0.02));
+  }
+
+  /* 侧边栏激活项样式 */
+  /* 支持多种写法，确保在各种实现方式下都能生效 */
+  [data-sidebar-item].active,
+  [data-sidebar-item][aria-current="page"],
+  [data-sidebar-menu] [data-active="true"] {
+    @apply bg-transparent;
+    font-weight: 600;
+  }
+
+  [data-sidebar-item].active span,
+  [data-sidebar-item][aria-current="page"] span,
+  [data-sidebar-menu] [data-active="true"] span {
+    @apply text-[hsl(var(--sidebar-primary))];
+  }
+}
+
+/* ===================== 4. Theme Variables (Light/Dark) ===================== */
+
+@layer base {
+  :root {
+    /* === Base === */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --border: 214 20% 89%;
+    --input: 214 20% 89%;
+    --ring: 221 83% 53%;
+
+    /* === Theme Colors === */
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 40%;
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* === Status Colors === */
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 221 83% 53%;
+
+    /* === Chart Colors === */
+    --chart-1: 221 83% 53%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 0 84% 60%;
+
+    /* === Gradients === */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(230 89% 62%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(214 32% 97%));
+    --gradient-background: linear-gradient(180deg, hsl(210 20% 98%), hsl(214 32% 96%));
+
+    /* === Shadows === */
+    --shadow-card: 0 1px 3px 0 hsl(221 83% 53% / 0.08), 0 1px 2px -1px hsl(221 83% 53% / 0.06);
+    --shadow-hover: 0 4px 12px 0 hsl(221 83% 53% / 0.15);
+
+    /* === Sidebar === */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 221 83% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 18%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 222 40% 18%;
+    --sidebar-ring: 221 83% 53%;
+  }
+
+  .dark {
+    /* === Base === */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 96%;
+    --border: 222 32% 18%;
+    --input: 222 32% 18%;
+    --ring: 221 83% 58%;
+
+    /* === Theme Colors === */
+    --primary: 221 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 32% 16%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 222 32% 16%;
+    --muted-foreground: 215 20% 62%;
+    --accent: 222 32% 16%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 210 40% 96%;
+
+    /* === Status Colors === */
+    --success: 142 60% 40%;
+    --warning: 38 80% 45%;
+    --info: 221 83% 58%;
+
+    /* === Chart Colors === */
+    --chart-1: 221 83% 60%;
+    --chart-2: 142 60% 45%;
+    --chart-3: 38 80% 50%;
+    --chart-4: 280 60% 55%;
+    --chart-5: 0 70% 55%;
+
+    /* === Gradients === */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 50%), hsl(230 89% 58%));
+    --gradient-card: linear-gradient(135deg, hsl(222 47% 9%), hsl(222 40% 12%));
+    --gradient-background: linear-gradient(180deg, hsl(222 47% 6%), hsl(222 40% 8%));
+
+    /* === Shadows === */
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.35), 0 1px 2px -1px hsl(0 0% 0% / 0.25);
+    --shadow-hover: 0 4px 12px 0 hsl(0 0% 0% / 0.45);
+
+    /* === Sidebar === */
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 221 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 14%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 222 40% 14%;
+    --sidebar-ring: 221 83% 58%;
+  }
+
+  /* 全局基础样式 */
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ===================== 5. Animations ===================== */
+
+/* 简化的抖动动画 (更短，性能更好) */
+@keyframes shake {
+  0%,
+  100% { transform: translateX(0); }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% { transform: translateX(-4px); }
+  20%,
+  40%,
+  60%,
+  80% { transform: translateX(4px); }
+}
+
+.shaking-text {
+  display: inline-block;
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both; /* cubic-bezier 增加弹性 */
+}
