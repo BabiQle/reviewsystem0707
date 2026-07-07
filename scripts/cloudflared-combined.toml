@@ -1,0 +1,13 @@
+# Combined Tunnel Config - Single Tunnel for both frontend and PB
+# Usage: cloudflared.exe tunnel --config cloudflared-combined.toml run
+
+credentials-file: D:\review-system-new - codex\scripts\tunnel-creds.json
+
+ingress:
+  - hostname: app.your-domain.com
+    service: http://10.80.159.174:5173
+
+  - hostname: api.your-domain.com
+    service: http://10.80.159.174:8091
+
+  - service: http_status:404

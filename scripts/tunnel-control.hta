@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Review System - Tunnel Control</title>
+<HTA:APPLICATION ID="oHTA" APPLICATIONNAME="TunnelControl" BORDER="thin" CAPTION="yes" SHOWINTASKBAR="yes" SINGLEINSTANCE="yes" WINDOWSTATE="normal" SCROLL="no" CONTEXTMENU="no" SELECTION="no" INNERBORDER="no" RESIZE="no" MAXIMIZEBUTTON="no" MINIMIZEBUTTON="no" />
+<style>
+  html, body {
+    font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .container {
+    text-align: center;
+    padding: 50px;
+    background: #161b22;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 500px;
+    border: 1px solid #30363d;
+  }
+  h1 {
+    font-size: 36px;
+    margin: 0 0 12px 0;
+    color: #f85149;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #8b949e;
+    margin-bottom: 40px;
+  }
+  .btn {
+    width: 220px;
+    height: 70px;
+    font-size: 24px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .btn:active { transform: scale(0.95); }
+  .btn-start {
+    background: #238636;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(35,134,54,0.5);
+  }
+  .btn-stop {
+    background: #da3633;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(218,54,51,0.5);
+  }
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  .status {
+    margin-top: 30px;
+    padding: 18px;
+    border-radius: 8px;
+    font-size: 18px;
+    min-height: 55px;
+    font-weight: bold;
+  }
+  .status-running {
+    background: rgba(46,160,67,0.15);
+    border: 2px solid #3fb950;
+    color: #3fb950;
+  }
+  .status-stopped {
+    background: rgba(248,81,73,0.15);
+    border: 2px solid #f85149;
+    color: #f85149;
+  }
+  .urls {
+    margin-top: 30px;
+    padding: 20px;
+    background: #0d1117;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    font-size: 17px;
+    text-align: left;
+  }
+  .urls a {
+    color: #58a6ff;
+    text-decoration: none;
+    display: block;
+    padding: 8px 0;
+    font-size: 19px;
+    font-weight: 500;
+  }
+  .urls a:hover { text-decoration: underline; color: #79c0ff; }
+  .urls .label { color: #8b949e; font-size: 16px; margin-bottom: 10px; font-weight: bold; }
+</style>
+<script language="JScript">
+var ws = new ActiveXObject("WScript.Shell");
+
+function checkProcess() {
+  try {
+    var wmi = GetObject("winmgmts:\\\\.\\root\\cimv2");
+    var col = wmi.ExecQuery("SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name='cloudflared.exe'");
+    var e = new Enumerator(col);
+    var found = [];
+    for (; !e.atEnd(); e.moveNext()) {
+      var p = e.item();
+      var cmd = p.CommandLine || "";
+      if (cmd.indexOf("tunnel-teamrate.toml") !== -1) {
+        found.push(p.ProcessId);
+      }
+    }
+    return found;
+  } catch(e) { return []; }
+}
+
+function updateStatus() {
+  var running = checkProcess();
+  var statusDiv = document.getElementById("status");
+  var startBtn = document.getElementById("btnStart");
+  var stopBtn = document.getElementById("btnStop");
+  
+  if (running.length > 0) {
+    statusDiv.className = "status status-running";
+    statusDiv.innerText = "Tunnel Running - PID: " + running.join(", ");
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+  } else {
+    statusDiv.className = "status status-stopped";
+    statusDiv.innerText = "Tunnel Stopped";
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+}
+
+function startTunnel() {
+  var statusDiv = document.getElementById("status");
+  statusDiv.className = "status status-running";
+  statusDiv.innerText = "Starting tunnel...";
+  
+  ws.Run("cmd /c D:\\PB\\start-tunnel.bat", 0, false);
+  
+  setTimeout(updateStatus, 5000);
+  setTimeout(updateStatus, 10000);
+  setTimeout(updateStatus, 15000);
+}
+
+function stopTunnel() {
+  ws.Run("taskkill /F /IM cloudflared.exe", 0, false);
+  setTimeout(updateStatus, 2000);
+}
+
+function openBrowser(url) {
+  ws.Run("cmd /c start " + url, 0, false);
+}
+
+window.onload = function() {
+  updateStatus();
+  setInterval(updateStatus, 3000);
+};
+</script>
+</head>
+<body>
+<div class="container">
+  <h1>Review System</h1>
+  <div class="subtitle">Cloudflare Tunnel Control Panel</div>
+  
+  <button class="btn btn-start" id="btnStart" onclick="startTunnel()">START</button>
+  <button class="btn btn-stop" id="btnStop" onclick="stopTunnel()" disabled>STOP</button>
+  
+  <div class="status status-stopped" id="status">
+    Tunnel Stopped
+  </div>
+  
+  <div class="urls">
+    <div class="label">Public URLs:</div>
+    <a href="#" onclick="openBrowser('https://web.teamrate.top'); return false;">web.teamrate.top (Frontend)</a>
+    <a href="#" onclick="openBrowser('https://api.teamrate.top/_/'); return false;">api.teamrate.top/_/ (PB Admin)</a>
+    <a href="#" onclick="openBrowser('https://api.teamrate.top/api/'); return false;">api.teamrate.top/api/ (PB API)</a>
+  </div>
+</div>
+</body>
+</html>

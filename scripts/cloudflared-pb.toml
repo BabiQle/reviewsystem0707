@@ -1,0 +1,11 @@
+﻿# ============================================================
+# Cloudflare Tunnel 配置文件 — PocketBase 后端 (8091)
+# ============================================================
+url: http://10.80.159.174:8091
+
+loglevel: info
+log-file: D:\review-system-new - codex\logs\pb-tunnel.log
+
+metrics: 127.0.0.1:3822
+
+admin-console: false

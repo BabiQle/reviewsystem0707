@@ -1,0 +1,11 @@
+﻿# ============================================================
+# Cloudflare Tunnel 配置文件 — 前端站点 (5173)
+# ============================================================
+url: http://10.80.159.174:5173
+
+loglevel: info
+log-file: D:\review-system-new - codex\logs\frontend-tunnel.log
+
+metrics: 127.0.0.1:3821
+
+admin-console: false

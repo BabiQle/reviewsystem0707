@@ -1,0 +1,155 @@
+﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { pb } from '@/db/pb';
+import type { Profile } from '@/types/types';
+
+export interface PBUser {
+  id: string;
+  email: string;
+}
+
+export function getProfile(userId: string): Promise<Profile | null> {
+  const model = pb.authStore.model as any;
+  if (model && model.id === userId) {
+    return Promise.resolve({
+      id: model.id,
+      username: model.username ?? '',
+      display_name: model.display_name || model.username || model.email || '',
+      role: (model.role as Profile['role']) ?? 'reviewee_only',
+      created_at: model.created ?? '',
+    });
+  }
+  return Promise.resolve(null);
+}
+
+// 生成匿名ID，用于未登录用户
+function generateAnonymousId(): string {
+  const stored = sessionStorage.getItem('anonymous_id');
+  if (stored) return stored;
+  const id = 'anon_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+  sessionStorage.setItem('anonymous_id', id);
+  return id;
+}
+
+interface AuthContextType {
+  user: PBUser | null;
+  profile: Profile | null;
+  loading: boolean;
+  signInWithUsername: (identity: string, password: string) => Promise<{ error: Error | null }>;
+  signUpWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<PBUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshProfile = () => {
+    const model = pb.authStore.model as any;
+    if (model && model.id) {
+      setUser({ id: model.id, email: model.email ?? '' });
+      setProfile({
+        id: model.id,
+        username: model.username ?? '',
+        display_name: model.display_name || model.username || model.email || '',
+        role: (model.role as Profile['role']) ?? 'reviewee_only',
+        created_at: model.created ?? '',
+      });
+    } else {
+      // 匿名用户
+      const anonId = generateAnonymousId();
+      setUser({ id: anonId, email: '' });
+      setProfile({
+        id: anonId,
+        username: 'anonymous',
+        display_name: '匿名用户',
+        role: 'reviewee_only',
+        created_at: '',
+      });
+    }
+    return Promise.resolve();
+  };
+
+  useEffect(() => {
+    const initAuth = () => {
+      if (pb.authStore.isValid && pb.authStore.model) {
+        const model = pb.authStore.model as any;
+        setUser({ id: model.id, email: model.email ?? '' });
+        setProfile({
+          id: model.id,
+          username: model.username ?? '',
+          display_name: model.display_name || model.username || model.email || '',
+          role: (model.role as Profile['role']) ?? 'reviewee_only',
+          created_at: model.created ?? '',
+        });
+      } else {
+        // 未登录时自动创建匿名用户
+        refreshProfile();
+      }
+      setLoading(false);
+    };
+
+    initAuth();
+
+    const unsubscribe = pb.authStore.onChange(() => {
+      refreshProfile();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const signInWithUsername = async (identity: string, password: string) => {
+    try {
+      const authData = await pb.collection('users').authWithPassword(identity, password);
+      const model = authData.record as any;
+      setUser({ id: model.id, email: model.email ?? '' });
+      setProfile({
+        id: model.id,
+        username: model.username ?? '',
+        display_name: model.display_name || model.username || model.email || '',
+        role: (model.role as Profile['role']) ?? 'reviewee_only',
+        created_at: model.created ?? '',
+      });
+      return { error: null };
+    } catch (err) {
+      console.error('PocketBase 登录失败:', err);
+      return { error: err as Error };
+    }
+  };
+
+  const signUpWithUsername = async (username: string, password: string) => {
+    try {
+      await pb.collection('users').create({
+        username,
+        password,
+        passwordConfirm: password,
+      });
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const signOut = async () => {
+    pb.authStore.clear();
+    setUser(null);
+    setProfile(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, profile, loading, signInWithUsername, signUpWithUsername, signOut, refreshProfile }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

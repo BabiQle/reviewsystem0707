@@ -1,0 +1,11 @@
+tunnel: cfa307e7-deb3-4603-9465-4dc094529c0c
+credentials-file: D:\review-system-new - codex\scripts\tunnel-creds.json
+
+ingress:
+  - hostname: web.teamrate.top
+    service: http://127.0.0.1:5173
+
+  - hostname: api.teamrate.top
+    service: http://10.80.159.174:8091
+
+  - service: http_status:404
