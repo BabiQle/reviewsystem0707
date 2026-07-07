@@ -1,0 +1,1 @@
+import{R as e,U as t,tt as n}from"./index-BtiazDae.js";import{t as r}from"./badge-Wl24vZve.js";var i=n(t(),1);const a=({size:t=`sm`,className:n,...a})=>(0,i.jsx)(r,{variant:`secondary`,className:e(`bg-blue-100 text-blue-700 border-0 ml-2`,{sm:`text-xs px-2 py-0.5`,md:`text-sm px-3 py-1`,lg:`text-base px-4 py-1.5`}[t],n),...a,children:`本月`});export{a as t};
